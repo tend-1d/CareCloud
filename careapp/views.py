@@ -7,6 +7,10 @@ from requests.auth import HTTPBasicAuth
 from django.http import HttpResponse, JsonResponse
 from careapp.credentials import MpesaAccessToken, LipanaMpesaPpassword
 from careapp.models import Transaction
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+
 
 from careapp.models import *
 
@@ -216,8 +220,64 @@ def transactions_list(request):
     transactions = Transaction.objects.filter(status="Success").order_by('-date')
     return render(request, 'transactions.html', {'transactions': transactions})
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.models import User
+
 def register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        # Check if passwords match
+        if password == confirm_password:
+            try:
+                # Check if username already exists
+                if User.objects.filter(username=username).exists():
+                    messages.error(request, "Username already exists")
+                    return render(request, 'register.html')
+
+                # Create user
+                user = User.objects.create_user(username=username, password=password)
+                user.save()
+
+                messages.success(request, "Account created successfully")
+                return redirect('/login')
+
+            except Exception as e:
+                messages.error(request, "An error occurred while creating the account")
+                return render(request, 'register.html')
+
+        else:
+            messages.error(request, "Passwords do not match")
+            return render(request, 'register.html')
+
+    # For GET request
     return render(request, 'register.html')
 
-def login(request):
-    return render(request, 'login.html')
+
+
+def login_view(request):
+     if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(request, username=username, password=password)
+
+        # Check if the user exists
+        if user is not None:
+            # login(request, user)
+            login(request,user)
+            messages.success(request, "You are now logged in!")
+            # Admin
+            if user.is_superuser:
+                return redirect('/show')
+
+            # For Normal Users
+            return redirect('/home')
+        else:
+            messages.error(request, "Invalid login credentials")
+
+        return render(request, 'login.html')
+
