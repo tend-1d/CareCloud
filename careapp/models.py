@@ -18,13 +18,13 @@ class Doctor( models.Model ):
     firstname = models.CharField(max_length=200)
     lastname = models.CharField(max_length=50)
     dob = models.DateField(null=True,blank=True)
-    nationality = models.CharField()
+    nationality = models.CharField(max_length=50)
     age = models.IntegerField ()
     gender = models.CharField(max_length=20)
-    phonenumber = models.IntegerField(max_length=10)
+    phonenumber = models.IntegerField()
     email = models.EmailField ()
-    medicallicencenumber = models.IntegerField(max_length=8)
-    specialization = models.CharField ()
+    medicallicencenumber = models.IntegerField()
+    specialization = models.CharField (max_length=50)
 
     def __str__(self):
         return self.firstname + " " + self.lastname
